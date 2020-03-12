@@ -12,6 +12,16 @@
  * Czy ten trop jest właściwy?
  */
 
+/* Po zmianie sposobu zapisu danych na (potęga 2 określająca liczbę adresów):(pierwszy adres)
+ * do wyszukania wystarczy jedno użycie std::find_if z odpowiednio przygotowanym warunkiem trafienia
+ * find_if znajduje pierwszy w szeregu element spełniający warunek, więc aby znalazł
+ * najbardziej dopasowany, prefiksy muszą być posortowane od najniższej potęgi określającej
+ * liczbę adresów do najwyższej.
+ * Na moim komputerze przyspieszenie jest bliskie 10-ciokrotnemu względem poprzedniego
+ * rozwiązania. Faktycznie wymyślenie takiego rozwiązania wydaje się w miarę proste.
+ * Następnym etapem może być sprawdzenie czy użycie innego kontenera nie da szybszego efektu.
+ */
+
 #include "db.h"
 #include "cli.h"
 
