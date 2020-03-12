@@ -73,3 +73,22 @@ std::string CIPDB::dumpKey(const CRangeKey key) const {
     s << inet_ntoa(in_addr{htonl(static_cast<in_addr_t>(key & 0xffffffff))}) << "/" << (key >> 32);
     return s.str();
 }
+
+/* -------------------------------------------------------------------------- */
+
+std::string CIPDB2::dumpKey(const CRangeKey key) const {
+    std::stringstream s;
+    s << inet_ntoa(in_addr{htonl(static_cast<in_addr_t>(key & 0xffffffff))}) << "/" << (32 - (key >> 32));
+    return s.str();
+}
+
+COptionalRangeKey CIPDB2::check(const CIp addr) {
+    COptionalRangeKey found;
+    auto foundIt = std::find_if(mRanges.begin(), mRanges.end(), [&] (const CRangeKey &range) {
+        return (addr - (range & 0xFFFFFFFF)) < (static_cast<uint32_t>(1) << (range >> 32));
+    });
+    if (foundIt != mRanges.end())
+        found.emplace(*foundIt);
+    return std::move(found);
+}
+
