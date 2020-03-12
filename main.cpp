@@ -15,7 +15,7 @@
 #include "db.h"
 #include "cli.h"
 
-CIPDB database;
+DB database;
 
 int main(int argc, char** argv) {
     CCli cli;

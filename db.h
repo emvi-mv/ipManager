@@ -51,4 +51,6 @@ class CIPDB2: public CIPDB {
 };
 
 
+using DB = CIPDB2;
+
 #endif /* DB_H_ */

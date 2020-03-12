@@ -14,7 +14,7 @@
 #include "cli.h"
 #include "string_utils.h"
 
-extern CIPDB database;
+extern DB database;
 
 void CCli::run() {
     std::string line;
