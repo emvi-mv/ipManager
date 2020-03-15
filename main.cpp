@@ -22,6 +22,11 @@
  * Następnym etapem może być sprawdzenie czy użycie innego kontenera nie da szybszego efektu.
  */
 
+/*
+ * Użycie vectora przyspiesza wyszukiwanie jeszcze (o ile dobrze pamiętam) x2-x3.
+ * Nieco lepszy efekt daje forward_list dlatego zostawiłem ten kontener.
+ */
+
 #include "db.h"
 #include "cli.h"
 
