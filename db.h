@@ -9,47 +9,42 @@
 #define DB_H_
 
 #include <cstdint>
-#include <set>
 #include <optional>
-#include <vector>
+#include <forward_list>
 
 using CIp = uint32_t;
 using CNetmask = uint8_t;
 using CRangeKey = uint64_t;
 using COptionalRangeKey = std::optional<CRangeKey>;
-using CRanges = std::set<CRangeKey>;
-using CAddresses = std::vector<CIp>;
+using CRanges = std::forward_list<CRangeKey>;
+using CAddresses = std::forward_list<CIp>;
 
-class CIPDB {
-        /* Prefiksy zapisane są w kontenerze typu set gdzie cała informacja zawarta jest w kluczu.
+class CIPDB2 {
+        /* Prefiksy zapisane są w postaci liczby gdzie zawarta jest cała informacja.
          * Program ma działać na architekturze 64-bitowej, więc wystarczy na 32 bity adresu IP
          * i kilka bitów maski.
          * W młodszej części klucza znajdują się 32 bity adresu więc nie potrzeba ich przesuwać.
-         * W kolejnym- starszym bajcie znajduje się rozmiar maski.
+         * W kolejnym- starszym bajcie znajduje się rozmiar maski przeznaczonej na hosty objęte
+         * prefiksem.
          */
+    private:    CRanges mRanges;    /* wpisane prefiksy */
 
-    protected:  CRanges mRanges;    /* wpisane prefiksy */
+    private:    constexpr CRangeKey networkAddress(const CNetmask negativeNetmask) const {
+                    return ((static_cast<CRangeKey>(1) << negativeNetmask) - 1);
+                }
 
-    public:     virtual ~CIPDB() = default;
+    private:    const CRangeKey makeKey(const CIp addr, const CNetmask netmask) const  {
+                    auto negativeNetmask = 32-netmask;
+                    return (addr & ~networkAddress(negativeNetmask)) | (static_cast<CRangeKey>(negativeNetmask) << 32);
+                }
 
-    protected:  constexpr CRangeKey networkAddress(const CNetmask netmask) const { return ((static_cast<CRangeKey>(1) << (32-netmask)) - 1); }
-    private:    virtual const CRangeKey makeKey(const CIp addr, const CNetmask netmask) const { return addr | networkAddress(netmask) | (static_cast<CRangeKey>(netmask) << 32); }
-    public:     virtual std::string dumpKey(const CRangeKey key) const;
     public:     const bool add(const CIp addr, const CNetmask netmask);
     public:     const bool del(const CIp addr, const CNetmask netmask);
-    public:     virtual COptionalRangeKey check(const CIp addr);
-    public:     void dump();
+    public:     std::string dumpKey(const CRangeKey key) const;
+    public:     COptionalRangeKey check(const CIp addr);
     public:     void bench(const unsigned int count, const CAddresses addresses);
+    public:     void dump();
 };
-
-class CIPDB2: public CIPDB {
-    private:    const CRangeKey makeKey(const CIp addr, const CNetmask netmask) const override  {
-        return (addr & ~networkAddress(netmask)) | (static_cast<CRangeKey>(32-netmask) << 32);
-    }
-    public:     virtual std::string dumpKey(const CRangeKey key) const override;
-    public:     virtual COptionalRangeKey check(const CIp addr) override;
-};
-
 
 using DB = CIPDB2;
 

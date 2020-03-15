@@ -115,7 +115,7 @@ void CCli::commandBench(const Targuments &arguments) {
             ipError = true;
             return;
         }
-        addresses.emplace_back(std::move(ip));
+        addresses.push_front(std::move(ip));
     });
     if (ipError)
         return;
