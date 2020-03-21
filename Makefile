@@ -1,5 +1,5 @@
 NAME = ipManager
-FILES = main db cli
+FILES = db cli main
 
 CPPFLAGS = -Ofast -Wall -std=c++17 -fPIC
 
