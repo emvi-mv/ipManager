@@ -9,43 +9,45 @@
 #define DB_H_
 
 #include <cstdint>
+#include <bitset>
+#include <vector>
 #include <optional>
-#include <forward_list>
 
 using CIp = uint32_t;
 using CNetmask = uint8_t;
-using CRangeKey = uint64_t;
-using COptionalRangeKey = std::optional<CRangeKey>;
-using CRanges = std::forward_list<CRangeKey>;
-using CAddresses = std::forward_list<CIp>;
+using CRanges = std::bitset< 1l<<33 >;
+using CRangeOffset = unsigned long;
+using COptionalRangeOffset = std::optional<CRangeOffset>;
+using CAddresses = std::vector<CIp>;
 
-class CIPDB2 {
-        /* Prefiksy zapisane są w postaci liczby gdzie zawarta jest cała informacja.
-         * Program ma działać na architekturze 64-bitowej, więc wystarczy na 32 bity adresu IP
-         * i kilka bitów maski.
-         * W młodszej części klucza znajdują się 32 bity adresu więc nie potrzeba ich przesuwać.
-         * W kolejnym- starszym bajcie znajduje się rozmiar maski przeznaczonej na hosty objęte
-         * prefiksem.
-         */
-    private:    CRanges mRanges;    /* wpisane prefiksy */
+class CIPDB {
+                /* wpisane prefiksy zawierają bitową maskę wszystkich możliwych prefiksów w adresacji IPv4
+                 * kontener zawiera na początku flagi dla prefiksów o krótkich maskach
+                 * /1 - 2^1 prefiksów
+                 * /2 - 2^2 prefiksów
+                 * /3 - 2^3 prefiksów
+                 * ...
+                 * /32 - 2^32 prefiksów
+                 * łącznie potrzebnych jest 2^33-2 bitów */
+    private:    CRanges mRanges;
 
-    private:    constexpr CRangeKey networkAddress(const CNetmask negativeNetmask) const {
-                    return ((static_cast<CRangeKey>(1) << negativeNetmask) - 1);
-                }
+                /* Obliczenie offsetu dla grupy prefiksów o podanej masce */
+    private:    constexpr CRangeOffset prefixGroupOffset(const CNetmask mask) const { return (1l << mask) - 2; }
 
-    private:    const CRangeKey makeKey(const CIp addr, const CNetmask netmask) const  {
-                    auto negativeNetmask = 32-netmask;
-                    return (addr & ~networkAddress(negativeNetmask)) | (static_cast<CRangeKey>(negativeNetmask) << 32);
-                }
+                /* Przekształcenie offsetu w kontenerze na maskę reprezentowanego prefiksu */
+    private:    CNetmask offsetToNetmask(const CRangeOffset offset) const;
+
+                /* Przekształcenie offsetu w kontenerze na adres IP reprezentowanego prefiksu */
+    private:    CIp offsetToIp(const CRangeOffset offset) const;
+
+                /* Przekształcenie offsetu w kontenerze na tekstowy zapis IP/maska */
+    public:     std::string dumpKey(const CRangeOffset offset) const;
 
     public:     const bool add(const CIp addr, const CNetmask netmask);
     public:     const bool del(const CIp addr, const CNetmask netmask);
-    public:     std::string dumpKey(const CRangeKey key) const;
-    public:     COptionalRangeKey check(const CIp addr);
-    public:     void bench(const unsigned int count, const CAddresses addresses);
+    public:     COptionalRangeOffset check(const CIp addr);
     public:     void dump();
+    public:     void bench(const unsigned int count, const CAddresses addresses);
 };
-
-using DB = CIPDB2;
 
 #endif /* DB_H_ */

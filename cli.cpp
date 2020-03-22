@@ -14,7 +14,7 @@
 #include "cli.h"
 #include "string_utils.h"
 
-extern DB database;
+extern CIPDB database;
 
 void CCli::run() {
     std::string line;
@@ -115,7 +115,7 @@ void CCli::commandBench(const Targuments &arguments) {
             ipError = true;
             return;
         }
-        addresses.push_front(std::move(ip));
+        addresses.emplace_back(std::move(ip));
     });
     if (ipError)
         return;
